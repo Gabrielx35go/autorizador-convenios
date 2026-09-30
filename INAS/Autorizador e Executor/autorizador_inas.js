@@ -1,266 +1,1137 @@
-(async()=>{
-const esperar=(condicao,timeout=10000,intervalo=100)=>new Promise(resolve=>{const inicio=Date.now();
-const timer=setInterval(()=>{
-try{if(condicao()){clearInterval(timer);resolve(true);return;}
-if(Date.now()-inicio>=timeout){clearInterval(timer);resolve(false);}
-}catch{}},intervalo);});
-const esperarElemento=(condicao,timeout=10000,intervalo=100)=>new Promise(resolve=>{
-const inicio=Date.now();
-const timer=setInterval(()=>{
-try{const resultado=condicao();
-if(resultado){clearInterval(timer);resolve(resultado);return;}
-if(Date.now()-inicio>=timeout){clearInterval(timer);resolve(null);}}catch{}},intervalo);});
-async function selecionarTabela22(){
+```javascript
+(async () => {
 
-    const TEXTO_TABELA='22 - Procedimentos e eventos em saúde';
+    // ============================================================
+    // CONFIGURAÇÕES / FUNÇÕES AUXILIARES
+    // ============================================================
 
-    const tabelaSelecionada=()=>
-        [...document.querySelectorAll('.css-1o0507n-singleValue')]
-        .some(el=>el.textContent?.trim()===TEXTO_TABELA);
+    const TEXTO_TABELA = '22 - Procedimentos e eventos em saúde';
 
-    for(let tentativa=1;tentativa<=3;tentativa++){
+    const esperar = (
+        condicao,
+        timeout = 10000,
+        intervalo = 100
+    ) =>
+        new Promise(resolve => {
 
-        if(!tabelaSelecionada()){
+            const inicio = Date.now();
 
-            const campoTabela = await esperarElemento(() => {
+            const timer = setInterval(() => {
 
-                const labelTabela = [...document.querySelectorAll('label')]
-                    .find(l => l.textContent?.includes('Tabela'));
+                try {
 
-                return labelTabela?.parentElement
-                    ?.querySelector('input[role="combobox"]');
+                    if (condicao()) {
+                        clearInterval(timer);
+                        resolve(true);
+                        return;
+                    }
 
-            },10000,100);
+                    if (Date.now() - inicio >= timeout) {
+                        clearInterval(timer);
+                        resolve(false);
+                    }
 
-            if(!campoTabela){
-                console.warn('Campo da Tabela não encontrado');
-                return false;
-            }
+                } catch (e) {}
 
-            campoTabela.focus();
+            }, intervalo);
 
-            ['mousedown','mouseup','click'].forEach(evt =>
-                campoTabela.dispatchEvent(
-                    new MouseEvent(evt,{
-                        bubbles:true,
-                        cancelable:true
-                    })
-                )
+        });
+
+
+    const esperarElemento = (
+        condicao,
+        timeout = 10000,
+        intervalo = 100
+    ) =>
+        new Promise(resolve => {
+
+            const inicio = Date.now();
+
+            const timer = setInterval(() => {
+
+                try {
+
+                    const resultado = condicao();
+
+                    if (resultado) {
+                        clearInterval(timer);
+                        resolve(resultado);
+                        return;
+                    }
+
+                    if (Date.now() - inicio >= timeout) {
+                        clearInterval(timer);
+                        resolve(null);
+                    }
+
+                } catch (e) {}
+
+            }, intervalo);
+
+        });
+
+
+    function dispararClique(elemento) {
+
+        if (!elemento) return false;
+
+        ['mousedown', 'mouseup', 'click'].forEach(evt => {
+
+            elemento.dispatchEvent(
+                new MouseEvent(evt, {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                })
             );
 
-            const setaTabela = campoTabela
-                ?.closest('.css-1lejura')
-                ?.parentElement
-                ?.querySelector('.css-1xc3v61-indicatorContainer');
+        });
 
-            if(setaTabela){
+        return true;
+    }
 
-                ['mousedown','mouseup','click'].forEach(evt =>
-                    setaTabela.dispatchEvent(
-                        new MouseEvent(evt,{
-                            bubbles:true,
-                            cancelable:true
-                        })
-                    )
+
+    // ============================================================
+    // LOCALIZAR CAMPO DA TABELA
+    // ============================================================
+
+    async function localizarCampoTabela() {
+
+        return await esperarElemento(() => {
+
+            const labelTabela = [...document.querySelectorAll('label')]
+                .find(l =>
+                    l.textContent?.trim().includes('Tabela')
                 );
-            }
 
-            const listaAberta = await esperarElemento(
-                ()=>document.querySelector('[role="listbox"]'),
-                3000,
-                100
+            return labelTabela
+                ?.parentElement
+                ?.querySelector('input[role="combobox"]');
+
+        }, 10000, 100);
+
+    }
+
+
+    // ============================================================
+    // VERIFICAR SE A TABELA 22 JÁ ESTÁ SELECIONADA
+    // ============================================================
+
+    function tabela22Selecionada() {
+
+        return [...document.querySelectorAll(
+            '.css-1o0507n-singleValue'
+        )]
+            .some(el =>
+                el.textContent?.trim() === TEXTO_TABELA
             );
 
-            if(!listaAberta){
-                console.warn(`Lista da Tabela não abriu na tentativa ${tentativa}`);
+    }
+
+
+    // ============================================================
+    // SELECIONAR TABELA 22
+    // ============================================================
+
+    async function selecionarTabela22() {
+
+        // Se já estiver selecionada, não faz nada.
+
+        if (tabela22Selecionada()) {
+
+            console.log('Tabela 22 já está selecionada.');
+
+            return true;
+        }
+
+
+        for (let tentativa = 1; tentativa <= 3; tentativa++) {
+
+            console.log(
+                `Selecionando Tabela 22 — tentativa ${tentativa}/3`
+            );
+
+
+            const campoTabela =
+                await localizarCampoTabela();
+
+
+            if (!campoTabela) {
+
+                console.warn(
+                    'Campo da Tabela não encontrado.'
+                );
+
                 continue;
             }
 
-            const opcao22 = await esperarElemento(
-                ()=>[...listaAberta.querySelectorAll('[role="option"]')]
-                    .find(el=>el.textContent?.trim()===TEXTO_TABELA),
-                8000
+
+            campoTabela.focus();
+
+            dispararClique(campoTabela);
+
+
+            // Mantém o seletor que você já descobriu.
+
+            const setaTabela =
+                campoTabela
+                    ?.closest('.css-1lejura')
+                    ?.parentElement
+                    ?.querySelector(
+                        '.css-1xc3v61-indicatorContainer'
+                    );
+
+
+            if (setaTabela) {
+
+                dispararClique(setaTabela);
+
+            }
+
+
+            // Espera a lista abrir.
+
+            const listaAberta =
+                await esperarElemento(
+                    () =>
+                        document.querySelector(
+                            '[role="listbox"]'
+                        ),
+                    3000,
+                    100
+                );
+
+
+            if (!listaAberta) {
+
+                console.warn(
+                    'Lista da Tabela não abriu.'
+                );
+
+                continue;
+            }
+
+
+            // Procura exatamente a opção 22.
+
+            const opcao22 =
+                await esperarElemento(() => {
+
+                    const lista =
+                        document.querySelector(
+                            '[role="listbox"]'
+                        );
+
+                    if (!lista) return null;
+
+                    return [
+                        ...lista.querySelectorAll(
+                            '[role="option"]'
+                        )
+                    ]
+                        .find(el =>
+                            el.textContent?.trim() ===
+                            TEXTO_TABELA
+                        );
+
+                }, 8000, 100);
+
+
+            if (!opcao22) {
+
+                console.warn(
+                    'Tabela 22 não encontrada.'
+                );
+
+                continue;
+            }
+
+
+            opcao22.click();
+
+
+            // Confirma visualmente que a tabela mudou.
+
+            const confirmou =
+                await esperar(
+                    () => tabela22Selecionada(),
+                    3000,
+                    100
+                );
+
+
+            if (confirmou) {
+
+                console.log(
+                    'Tabela 22 confirmada.'
+                );
+
+                return true;
+            }
+
+
+            console.warn(
+                'Tabela 22 não foi confirmada.'
             );
 
-         if(!opcao22){
-    console.warn(`Tabela 22 não encontrada na tentativa ${tentativa}`);
-    
-    const campoTabelaAgain = await esperarElemento(() => {
-        const labelTabela = [...document.querySelectorAll('label')]
-            .find(l => l.textContent?.includes('Tabela'));
+        }
 
-        return labelTabela?.parentElement
-            ?.querySelector('input[role="combobox"]');
-    },3000,100);
 
-if(campoTabelaAgain){campoTabelaAgain.focus();
-['mousedown','mouseup','click'].forEach(evt =>campoTabelaAgain.dispatchEvent(new MouseEvent(evt,{bubbles:true,cancelable:true})));}continue;}opcao22.click();}
-const confirmou = await esperar(()=>tabelaSelecionada(),3000,100);
-if(!confirmou){console.warn(`Tabela 22 não confirmada na tentativa ${tentativa}`);continue;}
-console.log('Tabela 22 confirmada');return true;}
-console.warn('Falha ao selecionar Tabela 22 após 3 tentativas');return false;}
-function lerItensTabela(){
-return [...document.querySelectorAll('tbody tr')].reduce((itens,tr)=>{
-const codigo=tr.querySelector('td.first-column')?.textContent?.trim();
-const quantidadeTexto=tr.querySelector('td:nth-child(3)')?.textContent?.trim();
-const quantidade=Number(quantidadeTexto?.replace(',', '.'));
-if(codigo)itens[codigo]=(itens[codigo]||0)+(Number.isFinite(quantidade)?quantidade:1);
-return itens;
-},{});}
-function obterCodigosPendentes(){
-const itensTabela=lerItensTabela();
-return codigos.reduce((pendentes,codigo)=>{
-const faltante=mapaQuantidades[codigo]-(itensTabela[codigo]||0);
-if(faltante>0)pendentes[codigo]=faltante;
-return pendentes;
-},{});}
-async function localizarCampoProcedimento(){
-return [...document.querySelectorAll('label')].find(l=>l.textContent.includes('Código e descrição'))?.parentElement?.querySelector('input[role="combobox"]');}
-async function preencherCodigo(codigo){
-const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;
-const campoFoco=await localizarCampoProcedimento();
-if(!campoFoco)return false;
-campoFoco.focus();
-const campoLimpeza=await localizarCampoProcedimento();
-if(!campoLimpeza)return false;
-setter.call(campoLimpeza,'');
-campoLimpeza.dispatchEvent(new Event('input',{bubbles:true}));
-const campoCodigo=await localizarCampoProcedimento();
-if(!campoCodigo)return false;
-setter.call(campoCodigo,codigo);
-campoCodigo.dispatchEvent(new InputEvent('input',{bubbles:true,data:codigo,inputType:'insertText'}));
-return true;}
-async function definirQuantidade(valor){
-const campoQuantidade=[...document.querySelectorAll('label')].find(l=>l.textContent.includes('Quantidade'))?.parentElement?.querySelector('input[type="number"]');
-if(!campoQuantidade)return false;
-const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;
-setter.call(campoQuantidade,String(valor));
-['input','change','blur'].forEach(evt=>campoQuantidade.dispatchEvent(new Event(evt,{bubbles:true})));
-return true;}
-const entrada=prompt('Cole os códigos:');
-if(!entrada){alert('Nenhum código informado.');return;}
-const listaCodigos=entrada.split(/[\s,;\n]+/).map(c=>c.trim()).filter(Boolean);
-const mapaQuantidades = {};
-const codigos = [];
+        console.error(
+            'Não foi possível selecionar a Tabela 22.'
+        );
 
-for (const codigo of listaCodigos) {
+        return false;
 
-    if (!(codigo in mapaQuantidades)) {
-        codigos.push(codigo); // guarda a ordem da primeira aparição
-        mapaQuantidades[codigo] = 0;
     }
 
-    mapaQuantidades[codigo]++;
-}
-console.log('Códigos únicos:',codigos);
-console.log('Quantidades:',mapaQuantidades);
-console.log('Selecionando a Tabela 22 antes de inserir os códigos...');
-if(!(await selecionarTabela22())){
-alert('Não foi possível confirmar a Tabela 22. Nenhum código foi inserido.');
-return;
-}
-let pendentes=obterCodigosPendentes();
-console.log('Itens pendentes antes da inclusão:',pendentes);
-for(const codigo of codigos){
 
-    if(!pendentes[codigo]) continue;
+    // ============================================================
+    // LER CÓDIGOS JÁ CADASTRADOS NA TABELA
+    // ============================================================
 
-    console.log(`Refazendo inclusão: ${codigo} (Quantidade: ${pendentes[codigo]})`);
+    function lerItensTabela() {
 
-    try{
+        const itens = {};
 
-        if(!(await selecionarTabela22())) continue;
-        if(!(await preencherCodigo(codigo))) continue;
 
-        const opcao = await esperarElemento(() => {
+        document
+            .querySelectorAll('tbody tr')
+            .forEach(tr => {
 
-            const listbox = document.querySelector('[role="listbox"]');
+                const codigo =
+                    tr.querySelector(
+                        'td.first-column'
+                    )
+                    ?.textContent
+                    ?.trim();
 
-            if(!listbox) return null;
 
-            return [...listbox.querySelectorAll('[role="option"]')]
-                .find(el => el.textContent?.trim().startsWith(codigo));
+                const quantidadeTexto =
+                    tr.querySelector(
+                        'td:nth-child(3)'
+                    )
+                    ?.textContent
+                    ?.trim();
 
-        }, 8000);
 
-        if(!opcao){
-            console.warn('Código não encontrado na segunda tentativa:', codigo);
-            continue;
+                if (!codigo) return;
+
+
+                const quantidade =
+                    Number(
+                        quantidadeTexto
+                            ?.replace(',', '.')
+                    );
+
+
+                const valorQuantidade =
+                    Number.isFinite(quantidade)
+                        ? quantidade
+                        : 1;
+
+
+                itens[codigo] =
+                    (itens[codigo] || 0) +
+                    valorQuantidade;
+
+            });
+
+
+        return itens;
+
+    }
+
+
+    // ============================================================
+    // LOCALIZAR CAMPO "CÓDIGO E DESCRIÇÃO"
+    // ============================================================
+
+    async function localizarCampoProcedimento() {
+
+        return await esperarElemento(() => {
+
+            return [...document.querySelectorAll('label')]
+                .find(l =>
+                    l.textContent
+                        ?.includes('Código e descrição')
+                )
+                ?.parentElement
+                ?.querySelector(
+                    'input[role="combobox"]'
+                );
+
+        }, 5000, 100);
+
+    }
+
+
+    // ============================================================
+    // PREENCHER CÓDIGO
+    // ============================================================
+
+    async function preencherCodigo(codigo) {
+
+        const campo =
+            await localizarCampoProcedimento();
+
+
+        if (!campo) {
+
+            console.warn(
+                `Campo de código não encontrado: ${codigo}`
+            );
+
+            return false;
         }
+
+
+        const setter =
+            Object.getOwnPropertyDescriptor(
+                HTMLInputElement.prototype,
+                'value'
+            ).set;
+
+
+        campo.focus();
+
+
+        // Limpa o campo.
+
+        setter.call(campo, '');
+
+        campo.dispatchEvent(
+            new Event('input', {
+                bubbles: true
+            })
+        );
+
+
+        // Insere o código.
+
+        setter.call(
+            campo,
+            codigo
+        );
+
+
+        campo.dispatchEvent(
+            new InputEvent('input', {
+                bubbles: true,
+                data: codigo,
+                inputType: 'insertText'
+            })
+        );
+
+
+        return true;
+
+    }
+
+
+    // ============================================================
+    // SELECIONAR OPÇÃO DO CÓDIGO
+    // ============================================================
+
+    async function selecionarOpcaoCodigo(codigo) {
+
+        const opcao =
+            await esperarElemento(() => {
+
+                const listbox =
+                    document.querySelector(
+                        '[role="listbox"]'
+                    );
+
+
+                if (!listbox) return null;
+
+
+                return [
+                    ...listbox.querySelectorAll(
+                        '[role="option"]'
+                    )
+                ]
+                    .find(el =>
+                        el.textContent
+                            ?.trim()
+                            .startsWith(codigo)
+                    );
+
+            }, 8000, 100);
+
+
+        if (!opcao) {
+
+            console.warn(
+                `Opção não encontrada para o código ${codigo}`
+            );
+
+            return false;
+        }
+
 
         opcao.click();
 
-        await esperar(
-            () => [...document.querySelectorAll('label')]
-                .some(l =>
-                    l.textContent.includes('Quantidade') &&
-                    l.parentElement?.querySelector('input[type="number"]')
-                ),
-            5000
+
+        return true;
+
+    }
+
+
+    // ============================================================
+    // DEFINIR QUANTIDADE
+    // ============================================================
+
+    async function definirQuantidade(valor) {
+
+        const campoQuantidade =
+            await esperarElemento(() => {
+
+                return [...document.querySelectorAll('label')]
+                    .find(l =>
+                        l.textContent
+                            ?.includes('Quantidade')
+                    )
+                    ?.parentElement
+                    ?.querySelector(
+                        'input[type="number"]'
+                    );
+
+            }, 5000, 100);
+
+
+        if (!campoQuantidade) {
+
+            console.warn(
+                'Campo de quantidade não encontrado.'
+            );
+
+            return false;
+        }
+
+
+        const setter =
+            Object.getOwnPropertyDescriptor(
+                HTMLInputElement.prototype,
+                'value'
+            ).set;
+
+
+        setter.call(
+            campoQuantidade,
+            String(valor)
         );
 
-        await definirQuantidade(pendentes[codigo]);
 
-        await new Promise(r => setTimeout(r, 15));
+        ['input', 'change', 'blur'].forEach(evt => {
 
-        document.querySelector('.button-add')?.click();
+            campoQuantidade.dispatchEvent(
+                new Event(evt, {
+                    bubbles: true
+                })
+            );
 
-    }catch(e){
-        console.error('Erro na segunda tentativa', codigo, e);
+        });
+
+
+        return true;
+
     }
-}
-pendentes=obterCodigosPendentes();
-if(Object.keys(pendentes).length){
-console.warn('Códigos ou quantidades ainda pendentes:',pendentes);
-for(const codigo of codigos){
 
-    if(!pendentes[codigo]) continue;
 
-    console.log(`Refazendo inclusão: ${codigo} (Quantidade: ${pendentes[codigo]})`);
+    // ============================================================
+    // CLICAR NO BOTÃO ADICIONAR
+    // ============================================================
 
-    try{
+    async function adicionarCodigo() {
 
-        if(!(await selecionarTabela22())) continue;
-        if(!(await preencherCodigo(codigo))) continue;
+        const botao =
+            await esperarElemento(
+                () =>
+                    document.querySelector(
+                        '.button-add'
+                    ),
+                5000,
+                100
+            );
 
-        const opcao = await esperarElemento(() => {
 
-            const listbox = document.querySelector('[role="listbox"]');
+        if (!botao) {
 
-            if(!listbox) return null;
+            console.warn(
+                'Botão Adicionar não encontrado.'
+            );
 
-            return [...listbox.querySelectorAll('[role="option"]')]
-                .find(el => el.textContent?.trim().startsWith(codigo));
+            return false;
+        }
 
-        }, 8000);
 
-        if(!opcao){
-            console.warn('Código não encontrado na segunda tentativa:', codigo);
+        botao.click();
+
+
+        // Dá tempo para a tabela atualizar.
+
+        await new Promise(
+            resolve => setTimeout(resolve, 300)
+        );
+
+
+        return true;
+
+    }
+
+
+    // ============================================================
+    // CALCULAR O QUE ESTÁ FALTANDO
+    // ============================================================
+
+    function obterPendentes(
+        codigos,
+        mapaQuantidades
+    ) {
+
+        const cadastrados =
+            lerItensTabela();
+
+
+        const pendentes = {};
+
+
+        for (const codigo of codigos) {
+
+            const solicitado =
+                mapaQuantidades[codigo];
+
+
+            const cadastrado =
+                cadastrados[codigo] || 0;
+
+
+            const faltante =
+                solicitado - cadastrado;
+
+
+            if (faltante > 0) {
+
+                pendentes[codigo] =
+                    faltante;
+
+            }
+
+        }
+
+
+        return pendentes;
+
+    }
+
+
+    // ============================================================
+    // MOSTRAR SITUAÇÃO ATUAL
+    // ============================================================
+
+    function exibirConferencia(
+        codigos,
+        mapaQuantidades
+    ) {
+
+        const cadastrados =
+            lerItensTabela();
+
+
+        console.table(
+            codigos.map(codigo => ({
+
+                Codigo: codigo,
+
+                Solicitado:
+                    mapaQuantidades[codigo],
+
+                Cadastrado:
+                    cadastrados[codigo] || 0,
+
+                Falta:
+                    Math.max(
+                        0,
+                        mapaQuantidades[codigo] -
+                        (cadastrados[codigo] || 0)
+                    )
+
+            }))
+        );
+
+    }
+
+
+    // ============================================================
+    // INSERIR UM CÓDIGO
+    // ============================================================
+
+    async function inserirCodigo(
+        codigo,
+        quantidade
+    ) {
+
+        console.log(
+            `Inserindo ${codigo} — quantidade ${quantidade}`
+        );
+
+
+        // Garante que a tabela 22 está selecionada.
+
+        if (!(await selecionarTabela22())) {
+
+            return false;
+        }
+
+
+        // Preenche o campo.
+
+        if (!(await preencherCodigo(codigo))) {
+
+            return false;
+        }
+
+
+        // Seleciona a opção encontrada.
+
+        if (!(await selecionarOpcaoCodigo(codigo))) {
+
+            return false;
+        }
+
+
+        // Aguarda o campo de quantidade.
+
+        const campoQuantidade =
+            await esperarElemento(
+                () =>
+                    [...document.querySelectorAll('label')]
+                        .some(l =>
+                            l.textContent
+                                ?.includes('Quantidade') &&
+                            l.parentElement
+                                ?.querySelector(
+                                    'input[type="number"]'
+                                )
+                        ),
+                5000,
+                100
+            );
+
+
+        if (!campoQuantidade) {
+
+            console.warn(
+                `Campo de quantidade não apareceu para ${codigo}`
+            );
+
+            return false;
+        }
+
+
+        // Define a quantidade.
+
+        if (!(await definirQuantidade(quantidade))) {
+
+            return false;
+        }
+
+
+        // Adiciona.
+
+        if (!(await adicionarCodigo())) {
+
+            return false;
+        }
+
+
+        console.log(
+            `Código ${codigo} adicionado.`
+        );
+
+
+        return true;
+
+    }
+
+
+    // ============================================================
+    // 1. RECEBER CÓDIGOS
+    // ============================================================
+
+    const entrada =
+        prompt(
+            'Cole os códigos dos exames:\n\n' +
+            'Pode colar um por linha, separados por espaço, vírgula ou ponto e vírgula.'
+        );
+
+
+    if (!entrada) {
+
+        alert(
+            'Nenhum código informado.'
+        );
+
+        return;
+    }
+
+
+    // ============================================================
+    // 2. PROCESSAR CÓDIGOS MANTENDO A ORDEM
+    // ============================================================
+
+    const listaCodigos =
+        entrada
+            .split(/[\s,;\n]+/)
+            .map(c => c.trim())
+            .filter(Boolean);
+
+
+    if (!listaCodigos.length) {
+
+        alert(
+            'Nenhum código válido encontrado.'
+        );
+
+        return;
+    }
+
+
+    const mapaQuantidades = {};
+    const codigos = [];
+
+
+    for (const codigo of listaCodigos) {
+
+        if (!(codigo in mapaQuantidades)) {
+
+            // Guarda somente a primeira ocorrência.
+            // Isso mantém a ordem original.
+
+            codigos.push(codigo);
+
+            mapaQuantidades[codigo] = 0;
+
+        }
+
+
+        mapaQuantidades[codigo]++;
+
+    }
+
+
+    console.log(
+        '================================================'
+    );
+
+    console.log(
+        'CÓDIGOS NA ORDEM ORIGINAL:'
+    );
+
+    console.log(codigos);
+
+
+    console.log(
+        'QUANTIDADES SOLICITADAS:'
+    );
+
+    console.table(mapaQuantidades);
+
+
+    // ============================================================
+    // 3. SELECIONAR TABELA 22
+    // ============================================================
+
+    console.log(
+        'Selecionando Tabela 22...'
+    );
+
+
+    if (!(await selecionarTabela22())) {
+
+        alert(
+            'Não foi possível selecionar a Tabela 22.\n\n' +
+            'Nenhum código foi inserido.'
+        );
+
+        return;
+    }
+
+
+    // ============================================================
+    // 4. CONFERIR O QUE JÁ EXISTE
+    // ============================================================
+
+    console.log(
+        'Conferindo códigos já cadastrados...'
+    );
+
+
+    let pendentes =
+        obterPendentes(
+            codigos,
+            mapaQuantidades
+        );
+
+
+    exibirConferencia(
+        codigos,
+        mapaQuantidades
+    );
+
+
+    // ============================================================
+    // 5. PRIMEIRA INSERÇÃO
+    // ============================================================
+
+    console.log(
+        '================================================'
+    );
+
+    console.log(
+        'INICIANDO PRIMEIRA INSERÇÃO'
+    );
+
+
+    for (const codigo of codigos) {
+
+        const quantidade =
+            pendentes[codigo];
+
+
+        // Se já estiver completo,
+        // não mexe nesse código.
+
+        if (!quantidade) {
+
+            console.log(
+                `${codigo}: já está completo.`
+            );
+
             continue;
         }
 
-        opcao.click();
 
-        await esperar(
-            () => [...document.querySelectorAll('label')]
-                .some(l =>
-                    l.textContent.includes('Quantidade') &&
-                    l.parentElement?.querySelector('input[type="number"]')
-                ),
-            5000
+        try {
+
+            await inserirCodigo(
+                codigo,
+                quantidade
+            );
+
+        } catch (erro) {
+
+            console.error(
+                `Erro ao inserir ${codigo}:`,
+                erro
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // 6. PRIMEIRA CONFERÊNCIA
+    // ============================================================
+
+    await new Promise(
+        resolve => setTimeout(resolve, 500)
+    );
+
+
+    console.log(
+        '================================================'
+    );
+
+    console.log(
+        'PRIMEIRA CONFERÊNCIA'
+    );
+
+
+    pendentes =
+        obterPendentes(
+            codigos,
+            mapaQuantidades
         );
 
-        await definirQuantidade(pendentes[codigo]);
 
-        await new Promise(r => setTimeout(r, 15));
+    exibirConferencia(
+        codigos,
+        mapaQuantidades
+    );
 
-        document.querySelector('.button-add')?.click();
 
-    }catch(e){
-        console.error('Erro na segunda tentativa', codigo, e);
+    // ============================================================
+    // 7. RETENTATIVAS — SOMENTE FALTANTES
+    // ============================================================
+
+    const MAX_TENTATIVAS = 3;
+
+    let tentativa = 1;
+
+
+    while (
+        Object.keys(pendentes).length &&
+        tentativa <= MAX_TENTATIVAS
+    ) {
+
+        console.log(
+            '================================================'
+        );
+
+        console.log(
+            `RETENTATIVA ${tentativa}/${MAX_TENTATIVAS}`
+        );
+
+
+        console.table(pendentes);
+
+
+        // IMPORTANTE:
+        // só percorre os códigos que realmente faltaram.
+
+        for (const codigo of codigos) {
+
+            const quantidade =
+                pendentes[codigo];
+
+
+            if (!quantidade) continue;
+
+
+            console.log(
+                `Tentando novamente: ${codigo} — falta ${quantidade}`
+            );
+
+
+            try {
+
+                await inserirCodigo(
+                    codigo,
+                    quantidade
+                );
+
+            } catch (erro) {
+
+                console.error(
+                    `Erro na retentativa de ${codigo}:`,
+                    erro
+                );
+
+            }
+
+        }
+
+
+        // Aguarda atualização da tabela.
+
+        await new Promise(
+            resolve => setTimeout(resolve, 500)
+        );
+
+
+        // Nova conferência.
+
+        pendentes =
+            obterPendentes(
+                codigos,
+                mapaQuantidades
+            );
+
+
+        exibirConferencia(
+            codigos,
+            mapaQuantidades
+        );
+
+
+        tentativa++;
+
     }
-}
-}
-const faltantesFinais=obterCodigosPendentes();
-if(Object.keys(faltantesFinais).length)console.warn('Após todas as tentativas, ainda faltam:',faltantesFinais);
-alert('FINALIZADO!');})();
+
+
+    // ============================================================
+    // 8. CONFERÊNCIA FINAL
+    // ============================================================
+
+    console.log(
+        '================================================'
+    );
+
+    console.log(
+        'CONFERÊNCIA FINAL'
+    );
+
+
+    const faltantesFinais =
+        obterPendentes(
+            codigos,
+            mapaQuantidades
+        );
+
+
+    exibirConferencia(
+        codigos,
+        mapaQuantidades
+    );
+
+
+    // ============================================================
+    // 9. RESULTADO
+    // ============================================================
+
+    if (
+        Object.keys(faltantesFinais).length === 0
+    ) {
+
+        console.log(
+            '================================================'
+        );
+
+        console.log(
+            '✓ TODOS OS CÓDIGOS E QUANTIDADES ESTÃO CORRETOS.'
+        );
+
+
+        alert(
+            'FINALIZADO!\n\n' +
+            'Todos os códigos solicitados foram cadastrados ' +
+            'nas quantidades corretas.'
+        );
+
+
+        return;
+
+    }
+
+
+    // Ainda existem pendências.
+
+    console.warn(
+        '================================================'
+    );
+
+    console.warn(
+        'CÓDIGOS AINDA PENDENTES:',
+        faltantesFinais
+    );
+
+
+    alert(
+        'ATENÇÃO!\n\n' +
+        'Alguns códigos ainda estão pendentes.\n\n' +
+        Object.entries(faltantesFinais)
+            .map(
+                ([codigo, quantidade]) =>
+                    `${codigo} → faltam ${quantidade}`
+            )
+            .join('\n') +
+        '\n\n' +
+        'Verifique a tabela.'
+    );
+
+})();
+```
