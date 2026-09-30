@@ -15,12 +15,49 @@ const TEXTO_TABELA='22 - Procedimentos e eventos em saúde';
 const tabelaSelecionada=()=>[...document.querySelectorAll('.css-1o0507n-singleValue')].some(el=>el.textContent?.trim()===TEXTO_TABELA);
 for(let tentativa=1;tentativa<=3;tentativa++){
 if(!tabelaSelecionada()){
-const setaTabela=await esperarElemento(()=>{
-const labelTabela=[...document.querySelectorAll('label')].find(l=>l.textContent.includes('Tabela'));
-return labelTabela?.parentElement?.querySelector('.css-1xc3v61-indicatorContainer');
-},10000,100);
-if(!setaTabela)return false;
-['mousedown','mouseup','click'].forEach(evt=>setaTabela.dispatchEvent(new MouseEvent(evt,{bubbles:true,cancelable:true})));
+const campoTabela = await esperarElemento(() => {
+    const labelTabela = [...document.querySelectorAll('label')]
+        .find(l => l.textContent?.includes('Tabela'));
+
+    return labelTabela?.parentElement?.querySelector(
+        'input[role="combobox"]'
+    );
+}, 10000, 100);
+
+if (!campoTabela) {
+    console.warn('Campo da Tabela não encontrado');
+    return false;
+}
+
+// Força foco no campo
+campoTabela.focus();
+
+// Tenta abrir pelo próprio campo
+['mousedown', 'mouseup', 'click'].forEach(evt =>
+    campoTabela.dispatchEvent(
+        new MouseEvent(evt, {
+            bubbles: true,
+            cancelable: true
+        })
+    )
+);
+
+// Caso não abra, tenta na seta
+const setaTabela = campoTabela
+    ?.closest('.css-1lejura')
+    ?.parentElement
+    ?.querySelector('.css-1xc3v61-indicatorContainer');
+
+if (setaTabela) {
+    ['mousedown', 'mouseup', 'click'].forEach(evt =>
+        setaTabela.dispatchEvent(
+            new MouseEvent(evt, {
+                bubbles: true,
+                cancelable: true
+            })
+        )
+    );
+}
 const listaAberta=await esperarElemento(()=>document.querySelector('[role="listbox"]'),3000,100);
 if(!listaAberta){console.warn(`Lista da Tabela não abriu na tentativa ${tentativa}`);continue;}
 const opcao22=await esperarElemento(()=>[...listaAberta.querySelectorAll('[role="option"]')].find(el=>el.textContent?.trim()===TEXTO_TABELA),8000);
