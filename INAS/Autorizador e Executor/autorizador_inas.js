@@ -30,8 +30,11 @@ const listaAberta=await esperarElemento(()=>document.querySelector('[role="listb
 if(!listaAberta){console.warn(`Lista da Tabela não abriu na tentativa ${tentativa}`);continue;}
 const opcao22=await esperarElemento(()=>[...listaAberta.querySelectorAll('[role="option"]')].find(el=>el.textContent?.trim()===TEXTO_TABELA),8000);
 if(!opcao22)return false;
-opcao22.click();}
-if(!confirmou){console.warn(`Tabela 22 não confirmada na tentativa ${tentativa}`);continue;}}
+opcao22.click();
+}
+const confirmou=await esperar(()=>tabelaSelecionada(),3000,100);
+if(!confirmou){console.warn(`Tabela 22 não confirmada na tentativa ${tentativa}`);return false;}
+}
 console.log('Tabela 22 confirmada 3 vezes');
 return true;}
 function lerItensTabela(){
