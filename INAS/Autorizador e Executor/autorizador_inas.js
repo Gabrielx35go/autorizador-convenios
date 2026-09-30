@@ -11,32 +11,94 @@ try{const resultado=condicao();
 if(resultado){clearInterval(timer);resolve(resultado);return;}
 if(Date.now()-inicio>=timeout){clearInterval(timer);resolve(null);}}catch{}},intervalo);});
 async function selecionarTabela22(){
-const TEXTO_TABELA='22 - Procedimentos e eventos em saúde';
-const tabelaSelecionada=()=>[...document.querySelectorAll('.css-1o0507n-singleValue')].some(el=>el.textContent?.trim()===TEXTO_TABELA);
-for(let tentativa=1;tentativa<=3;tentativa++){
-if(!tabelaSelecionada()){
-const campoTabela = await esperarElemento(() => {
-const labelTabela = [...document.querySelectorAll('label')]
-.find(l => l.textContent?.includes('Tabela'));
-return labelTabela?.parentElement?.querySelector('input[role="combobox"]');},10000, 100);if (!campoTabela) {console.warn('Campo da Tabela não encontrado');return false;}
-campoTabela.focus();
-['mousedown', 'mouseup', 'click'].forEach(evt =>campoTabela.dispatchEvent(new MouseEvent(evt,{bubbles: true, cancelable: true})));
-const setaTabela = campoTabela
-?.closest('.css-1lejura')
-?.parentElement
-?.querySelector('.css-1xc3v61-indicatorContainer');
-if (setaTabela) {['mousedown', 'mouseup', 'click'].forEach(evt =>setaTabela.dispatchEvent(new MouseEvent(evt, {bubbles: true, cancelable: true})));}
-const listaAberta=await esperarElemento(()=>document.querySelector('[role="listbox"]'),3000,100);
-if(!listaAberta){console.warn(`Lista da Tabela não abriu na tentativa ${tentativa}`);continue;}
-const opcao22=await esperarElemento(()=>[...listaAberta.querySelectorAll('[role="option"]')].find(el=>el.textContent?.trim()===TEXTO_TABELA),8000);
-if(!opcao22)return false;
-opcao22.click();
-}
-const confirmou=await esperar(()=>tabelaSelecionada(),3000,100);
-if(!confirmou){console.warn(`Tabela 22 não confirmada na tentativa ${tentativa}`);return false;}
-}
-console.log('Tabela 22 confirmada 3 vezes');
-return true;}
+
+    const TEXTO_TABELA='22 - Procedimentos e eventos em saúde';
+
+    const tabelaSelecionada=()=>
+        [...document.querySelectorAll('.css-1o0507n-singleValue')]
+        .some(el=>el.textContent?.trim()===TEXTO_TABELA);
+
+    for(let tentativa=1;tentativa<=3;tentativa++){
+
+        if(!tabelaSelecionada()){
+
+            const campoTabela = await esperarElemento(() => {
+
+                const labelTabela = [...document.querySelectorAll('label')]
+                    .find(l => l.textContent?.includes('Tabela'));
+
+                return labelTabela?.parentElement
+                    ?.querySelector('input[role="combobox"]');
+
+            },10000,100);
+
+            if(!campoTabela){
+                console.warn('Campo da Tabela não encontrado');
+                return false;
+            }
+
+            campoTabela.focus();
+
+            ['mousedown','mouseup','click'].forEach(evt =>
+                campoTabela.dispatchEvent(
+                    new MouseEvent(evt,{
+                        bubbles:true,
+                        cancelable:true
+                    })
+                )
+            );
+
+            const setaTabela = campoTabela
+                ?.closest('.css-1lejura')
+                ?.parentElement
+                ?.querySelector('.css-1xc3v61-indicatorContainer');
+
+            if(setaTabela){
+
+                ['mousedown','mouseup','click'].forEach(evt =>
+                    setaTabela.dispatchEvent(
+                        new MouseEvent(evt,{
+                            bubbles:true,
+                            cancelable:true
+                        })
+                    )
+                );
+            }
+
+            const listaAberta = await esperarElemento(
+                ()=>document.querySelector('[role="listbox"]'),
+                3000,
+                100
+            );
+
+            if(!listaAberta){
+                console.warn(`Lista da Tabela não abriu na tentativa ${tentativa}`);
+                continue;
+            }
+
+            const opcao22 = await esperarElemento(
+                ()=>[...listaAberta.querySelectorAll('[role="option"]')]
+                    .find(el=>el.textContent?.trim()===TEXTO_TABELA),
+                8000
+            );
+
+         if(!opcao22){
+    console.warn(`Tabela 22 não encontrada na tentativa ${tentativa}`);
+    
+    const campoTabelaAgain = await esperarElemento(() => {
+        const labelTabela = [...document.querySelectorAll('label')]
+            .find(l => l.textContent?.includes('Tabela'));
+
+        return labelTabela?.parentElement
+            ?.querySelector('input[role="combobox"]');
+    },3000,100);
+
+if(campoTabelaAgain){campoTabelaAgain.focus();
+['mousedown','mouseup','click'].forEach(evt =>campoTabelaAgain.dispatchEvent(new MouseEvent(evt,{bubbles:true,cancelable:true})));}continue;}opcao22.click();}
+const confirmou = await esperar(()=>tabelaSelecionada(),3000,100);
+if(!confirmou){console.warn(`Tabela 22 não confirmada na tentativa ${tentativa}`);continue;}
+console.log('Tabela 22 confirmada');return true;}
+console.warn('Falha ao selecionar Tabela 22 após 3 tentativas');return false;}
 function lerItensTabela(){
 return [...document.querySelectorAll('tbody tr')].reduce((itens,tr)=>{
 const codigo=tr.querySelector('td.first-column')?.textContent?.trim();
