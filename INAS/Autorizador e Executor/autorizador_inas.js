@@ -140,9 +140,18 @@ return true;}
 const entrada=prompt('Cole os códigos:');
 if(!entrada){alert('Nenhum código informado.');return;}
 const listaCodigos=entrada.split(/[\s,;\n]+/).map(c=>c.trim()).filter(Boolean);
-const mapaQuantidades={};
-for(const codigo of listaCodigos){mapaQuantidades[codigo]=(mapaQuantidades[codigo]||0)+1;}
-const codigos=Object.keys(mapaQuantidades);
+const mapaQuantidades = {};
+const codigos = [];
+
+for (const codigo of listaCodigos) {
+
+    if (!(codigo in mapaQuantidades)) {
+        codigos.push(codigo); // guarda a ordem da primeira aparição
+        mapaQuantidades[codigo] = 0;
+    }
+
+    mapaQuantidades[codigo]++;
+}
 console.log('Códigos únicos:',codigos);
 console.log('Quantidades:',mapaQuantidades);
 console.log('Selecionando a Tabela 22 antes de inserir os códigos...');
@@ -152,44 +161,105 @@ return;
 }
 let pendentes=obterCodigosPendentes();
 console.log('Itens pendentes antes da inclusão:',pendentes);
-for(const codigo of Object.keys(pendentes)){
-try{console.log(`Processando: ${codigo} (Quantidade: ${mapaQuantidades[codigo]})`);
-if(!(await selecionarTabela22()))continue;
-if(!(await preencherCodigo(codigo)))continue;
-const opcao=await esperarElemento(()=>{const listbox=document.querySelector('[role="listbox"]');
-if(!listbox)return null;
-return [...listbox.querySelectorAll('[role="option"]')].find(el=>el.textContent?.trim().startsWith(codigo));},8000);
-if(!opcao){console.warn('Código não encontrado:',codigo);continue;}
-opcao.click();
-await esperar(()=>{const qtd=[...document.querySelectorAll('label')].find(l=>l.textContent.includes('Quantidade'))?.parentElement?.querySelector('input[type="number"]');
-return !!qtd;},5000);
-await definirQuantidade(pendentes[codigo]);
-await new Promise(r=>setTimeout(r,15));
-document.querySelector('.button-add')?.click();
-let adicionado=await esperar(()=>[...document.querySelectorAll('td.first-column')].some(td=>td.textContent?.trim()===codigo),3000);
-if(!adicionado){console.log('Tentando segundo clique:',codigo);
-document.querySelector('.button-add')?.click();
-adicionado=await esperar(()=>[...document.querySelectorAll('td.first-column')].some(td=>td.textContent?.trim()===codigo),5000);}
-if(!adicionado){console.warn('Inclusão não confirmada:',codigo);continue;}
-}catch(e){console.error('Erro ao processar',codigo,e);}}
+for(const codigo of codigos){
+
+    if(!pendentes[codigo]) continue;
+
+    console.log(`Refazendo inclusão: ${codigo} (Quantidade: ${pendentes[codigo]})`);
+
+    try{
+
+        if(!(await selecionarTabela22())) continue;
+        if(!(await preencherCodigo(codigo))) continue;
+
+        const opcao = await esperarElemento(() => {
+
+            const listbox = document.querySelector('[role="listbox"]');
+
+            if(!listbox) return null;
+
+            return [...listbox.querySelectorAll('[role="option"]')]
+                .find(el => el.textContent?.trim().startsWith(codigo));
+
+        }, 8000);
+
+        if(!opcao){
+            console.warn('Código não encontrado na segunda tentativa:', codigo);
+            continue;
+        }
+
+        opcao.click();
+
+        await esperar(
+            () => [...document.querySelectorAll('label')]
+                .some(l =>
+                    l.textContent.includes('Quantidade') &&
+                    l.parentElement?.querySelector('input[type="number"]')
+                ),
+            5000
+        );
+
+        await definirQuantidade(pendentes[codigo]);
+
+        await new Promise(r => setTimeout(r, 15));
+
+        document.querySelector('.button-add')?.click();
+
+    }catch(e){
+        console.error('Erro na segunda tentativa', codigo, e);
+    }
+}
 pendentes=obterCodigosPendentes();
 if(Object.keys(pendentes).length){
 console.warn('Códigos ou quantidades ainda pendentes:',pendentes);
-for(const codigo of Object.keys(pendentes)){
-console.log(`Refazendo inclusão: ${codigo} (Quantidade: ${pendentes[codigo]})`);
-try{
-if(!(await selecionarTabela22()))continue;
-if(!(await preencherCodigo(codigo)))continue;
-const opcao=await esperarElemento(()=>{const listbox=document.querySelector('[role="listbox"]');
-if(!listbox)return null;
-return [...listbox.querySelectorAll('[role="option"]')].find(el=>el.textContent?.trim().startsWith(codigo));},8000);
-if(!opcao){console.warn('Código não encontrado na segunda tentativa:',codigo);continue;}
-opcao.click();
-await esperar(()=>[...document.querySelectorAll('label')].some(l=>l.textContent.includes('Quantidade')&&l.parentElement?.querySelector('input[type="number"]')),5000);
-await definirQuantidade(pendentes[codigo]);
-await new Promise(r=>setTimeout(r,15));
-document.querySelector('.button-add')?.click();
-}catch(e){console.error('Erro na segunda tentativa',codigo,e);}}
+for(const codigo of codigos){
+
+    if(!pendentes[codigo]) continue;
+
+    console.log(`Refazendo inclusão: ${codigo} (Quantidade: ${pendentes[codigo]})`);
+
+    try{
+
+        if(!(await selecionarTabela22())) continue;
+        if(!(await preencherCodigo(codigo))) continue;
+
+        const opcao = await esperarElemento(() => {
+
+            const listbox = document.querySelector('[role="listbox"]');
+
+            if(!listbox) return null;
+
+            return [...listbox.querySelectorAll('[role="option"]')]
+                .find(el => el.textContent?.trim().startsWith(codigo));
+
+        }, 8000);
+
+        if(!opcao){
+            console.warn('Código não encontrado na segunda tentativa:', codigo);
+            continue;
+        }
+
+        opcao.click();
+
+        await esperar(
+            () => [...document.querySelectorAll('label')]
+                .some(l =>
+                    l.textContent.includes('Quantidade') &&
+                    l.parentElement?.querySelector('input[type="number"]')
+                ),
+            5000
+        );
+
+        await definirQuantidade(pendentes[codigo]);
+
+        await new Promise(r => setTimeout(r, 15));
+
+        document.querySelector('.button-add')?.click();
+
+    }catch(e){
+        console.error('Erro na segunda tentativa', codigo, e);
+    }
+}
 }
 const faltantesFinais=obterCodigosPendentes();
 if(Object.keys(faltantesFinais).length)console.warn('Após todas as tentativas, ainda faltam:',faltantesFinais);
