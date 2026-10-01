@@ -1,1 +1,1 @@
-javascript:fetch("https://raw.githubusercontent.com/Gabrielx35go/autorizador_convenios/refs/heads/main/loadmedsenaut.js").then(r=>r.text()).then(eval)
+javascript:fetch("https://raw.githubusercontent.com/Gabrielx35go/autorizador_convenios/refs/heads/main/loadmedsenaut.js?token=GHSAT0AAAAAAEJ7NGT2EK53AZWSP7OFXUSA2V6PURQ").then(r=>r.text()).then(eval)
