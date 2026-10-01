@@ -1,1 +1,1 @@
-javascript:fetch("https://raw.githubusercontent.com/Gabrielx35go/autorizador_convenios/refs/heads/main/loadinasexec.js").then(r=>r.text()).then(eval)
+javascript:fetch("https://raw.githubusercontent.com/Gabrielx35go/autorizador_convenios/refs/heads/main/loadinasexec.js?token=GHSAT0AAAAAAEJ7NGT2TFOTRVJTAC2YML2C2V6PVJQ").then(r=>r.text()).then(eval)
