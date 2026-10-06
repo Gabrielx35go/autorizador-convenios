@@ -780,96 +780,45 @@
                     `${codigo} → ${descricaoFinal}`;
 
 
-                // Pequena pausa antes do próximo
-                await dormir(200);
-            }
+// Pequena pausa antes do próximo
+await dormir(200);
+
+}
 
 
-            // ------------------------------------------------------------
-            // FINAL
-            // ------------------------------------------------------------
+// ============================================================
+// TODOS OS EXAMES FORAM PREENCHIDOS
+// REMOVE TODAS AS PAREDES DO BOOTSTRAP
+// ============================================================
 
-            status.innerHTML = `
-                <span style="
-                    color:#198754;
-                    font-weight:bold;
-                    font-size:15px;
-                ">
-                    ✓ Concluído com sucesso!
-                </span>
-                <br>
-                <span style="font-size:13px;">
-                    ${codigos.length} código(s) processado(s).
-                </span>
-            `;
+await dormir(30);
+let removidos = apagarTodosBackdrops();
 
-            // Guarda o container dos botões
-            const containerBotoes = iniciar.parentElement;
+await dormir(70);
+removidos += apagarTodosBackdrops();
 
-            // Remove os botões antigos
-            iniciar.remove();
-            cancelar.remove();
+await dormir(150);
+removidos += apagarTodosBackdrops();
 
-            // Cria somente o botão CONCLUIR
-            const concluir = document.createElement("button");
+console.log(
+    `[AUTOMATIZADOR] 🔥 ${removidos} backdrop(s) removido(s).`
+);
 
-            concluir.textContent = "Concluir";
 
-            concluir.style.cssText = `
-                padding:10px 28px;
-                cursor:pointer;
-                background:#198754;
-                color:white;
-                border:none;
-                border-radius:5px;
-                font-weight:bold;
-                font-size:14px;
-            `;
+// ------------------------------------------------------------
+// FINAL
+// ------------------------------------------------------------
 
-            // Fecha o painel
-            concluir.onclick = () => {
-                fundo.remove();
-            };
-
-            // Coloca o único botão restante
-            containerBotoes.appendChild(concluir);
-
-            console.log(
-                `[AUTOMATIZADOR] FINALIZADO — ${codigos.length} códigos processados.`
-            );
-
-        } catch (erro) {
-
-            console.error(
-                "[AUTOMATIZADOR] ERRO:",
-                erro
-            );
-
-            status.innerHTML = `
-                <span style="
-                    color:#dc3545;
-                    font-weight:bold;
-                    font-size:15px;
-                ">
-                    ✗ Erro
-                </span>
-
-                <br><br>
-
-                <pre style="
-                    white-space:pre-wrap;
-                    font-family:Arial;
-                    font-size:12px;
-                    color:#333;
-                ">${String(
-                    erro.message || erro
-                )}</pre>
-            `;
-
-            iniciar.disabled = false;
-            cancelar.disabled = false;
-        }
-
-    };
-
-})();
+status.innerHTML = `
+    <span style="
+        color:#198754;
+        font-weight:bold;
+        font-size:15px;
+    ">
+        ✓ Concluído com sucesso!
+    </span>
+    <br>
+    <span style="font-size:13px;">
+        ${codigos.length} código(s) processado(s).
+    </span>
+`;
