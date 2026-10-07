@@ -46,6 +46,84 @@
 
 
     // ============================================================
+    // APAGA TODOS OS MODAL-BACKDROP EM MASSA
+    // Executado somente após o último exame ser preenchido
+    // ============================================================
+
+    function apagarTodosBackdrops(documentoInicial = document) {
+
+        let total = 0;
+        const documentosVisitados = new Set();
+
+        function limparDocumento(doc) {
+
+            if (!doc || documentosVisitados.has(doc)) {
+                return;
+            }
+
+            documentosVisitados.add(doc);
+
+            try {
+
+                // Apaga TODOS os elementos iguais a:
+                // <div class="modal-backdrop fade"></div>
+                // Também pega o mesmo elemento caso tenha classes extras.
+                const backdrops =
+                    doc.querySelectorAll("div.modal-backdrop.fade");
+
+                backdrops.forEach(el => {
+
+                    console.log(
+                        "[AUTOMATIZADOR] Apagando backdrop:",
+                        el
+                    );
+
+                    el.remove();
+                    total++;
+                });
+
+                // Procura também dentro dos iframes acessíveis.
+                const frames = doc.querySelectorAll("iframe");
+
+                for (const frame of frames) {
+
+                    try {
+
+                        const docFrame =
+                            frame.contentDocument ||
+                            frame.contentWindow?.document;
+
+                        if (docFrame) {
+                            limparDocumento(docFrame);
+                        }
+
+                    } catch (e) {
+                        // iframe de outro domínio: ignorar
+                    }
+                }
+
+            } catch (e) {}
+        }
+
+        // Documento onde o script está rodando.
+        limparDocumento(documentoInicial);
+
+        // Também tenta subir até o documento principal, caso o script
+        // esteja sendo executado dentro de um iframe.
+        try {
+            let janela = documentoInicial.defaultView;
+
+            while (janela && janela.parent && janela.parent !== janela) {
+                janela = janela.parent;
+                limparDocumento(janela.document);
+            }
+        } catch (e) {}
+
+        return total;
+    }
+
+
+    // ============================================================
     // PROCURA ELEMENTO EM DOCUMENTO + IFRAMES
     // ============================================================
 
@@ -780,45 +858,120 @@
                     `${codigo} → ${descricaoFinal}`;
 
 
-// Pequena pausa antes do próximo
-await dormir(200);
-
-}
-
-
-// ============================================================
-// TODOS OS EXAMES FORAM PREENCHIDOS
-// REMOVE TODAS AS PAREDES DO BOOTSTRAP
-// ============================================================
-
-await dormir(30);
-let removidos = apagarTodosBackdrops();
-
-await dormir(70);
-removidos += apagarTodosBackdrops();
-
-await dormir(150);
-removidos += apagarTodosBackdrops();
-
-console.log(
-    `[AUTOMATIZADOR] 🔥 ${removidos} backdrop(s) removido(s).`
-);
+                // Pequena pausa antes do próximo
+                await dormir(200);
+            }
 
 
-// ------------------------------------------------------------
-// FINAL
-// ------------------------------------------------------------
+            // ============================================================
+            // TODOS OS EXAMES FORAM PREENCHIDOS
+            // APAGA EM MASSA TODOS OS <div class="modal-backdrop fade">
+            // ============================================================
 
-status.innerHTML = `
-    <span style="
-        color:#198754;
-        font-weight:bold;
-        font-size:15px;
-    ">
-        ✓ Concluído com sucesso!
-    </span>
-    <br>
-    <span style="font-size:13px;">
-        ${codigos.length} código(s) processado(s).
-    </span>
-`;
+            status.textContent =
+                "Último exame concluído. Removendo bloqueios da página...";
+
+            // Três varreduras rápidas para pegar também backdrops
+            // que o Bootstrap crie com alguns milissegundos de atraso.
+            await dormir(30);
+            let removidos = apagarTodosBackdrops();
+
+            await dormir(70);
+            removidos += apagarTodosBackdrops();
+
+            await dormir(150);
+            removidos += apagarTodosBackdrops();
+
+            console.log(
+                `[AUTOMATIZADOR] ${removidos} backdrop(s) removido(s) em massa.`
+            );
+
+
+            // ------------------------------------------------------------
+            // FINAL
+            // ------------------------------------------------------------
+
+            status.innerHTML = `
+                <span style="
+                    color:#198754;
+                    font-weight:bold;
+                    font-size:15px;
+                ">
+                    ✓ Concluído com sucesso!
+                </span>
+                <br>
+                <span style="font-size:13px;">
+                    ${codigos.length} código(s) processado(s).
+                </span>
+            `;
+
+            // Guarda o container dos botões
+            const containerBotoes = iniciar.parentElement;
+
+            // Remove os botões antigos
+            iniciar.remove();
+            cancelar.remove();
+
+            // Cria somente o botão CONCLUIR
+            const concluir = document.createElement("button");
+
+            concluir.textContent = "Concluir";
+
+            concluir.style.cssText = `
+                padding:10px 28px;
+                cursor:pointer;
+                background:#198754;
+                color:white;
+                border:none;
+                border-radius:5px;
+                font-weight:bold;
+                font-size:14px;
+            `;
+
+            // Fecha o painel
+            concluir.onclick = () => {
+                fundo.remove();
+            };
+
+            // Coloca o único botão restante
+            containerBotoes.appendChild(concluir);
+
+            console.log(
+                `[AUTOMATIZADOR] FINALIZADO — ${codigos.length} códigos processados.`
+            );
+
+        } catch (erro) {
+
+            console.error(
+                "[AUTOMATIZADOR] ERRO:",
+                erro
+            );
+
+            status.innerHTML = `
+                <span style="
+                    color:#dc3545;
+                    font-weight:bold;
+                    font-size:15px;
+                ">
+                    ✗ Erro
+                </span>
+
+                <br><br>
+
+                <pre style="
+                    white-space:pre-wrap;
+                    font-family:Arial;
+                    font-size:12px;
+                    color:#333;
+                ">${String(
+                    erro.message || erro
+                )}</pre>
+            `;
+
+            iniciar.disabled = false;
+            cancelar.disabled = false;
+        }
+
+    };
+
+})();
