@@ -3,6 +3,8 @@
   const ROOT_ID = '__exflow_executor_02__';
   document.getElementById(ROOT_ID)?.remove();
   const state = { cancelled: false, running: false };
+  try { window.__exflowExecutor02?.cancel?.(); } catch (_) {}
+  window.__exflowExecutor02 = { cancel: () => { state.cancelled = true; } };
   const CONFIG = { timeoutLinha: 15000, timeoutDescricao: 20000, intervalo: 100 };
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   const checkCancelled = () => { if (state.cancelled) throw new Error('Execução cancelada pelo usuário. Nenhuma nova ação será iniciada.'); };
@@ -11,7 +13,7 @@
   root.innerHTML = `
     <style>
       :host{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:rgba(33,24,67,.28);font:14px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:#241b44}:host *{box-sizing:border-box}:host .card{width:min(760px,94vw);max-height:92vh;overflow:auto;border:1px solid #e9e5ff;border-radius:24px;background:#fff;box-shadow:0 28px 90px rgba(61,42,139,.25);padding:24px}.top{display:flex;gap:18px;align-items:center;border-bottom:1px solid #f0edff;padding-bottom:18px}h1{font-size:20px;margin:0}.sub{color:#756f91;margin:3px 0 0}.chibi{margin-left:auto;position:relative;width:68px;height:68px;border-radius:22px;background:linear-gradient(145deg,#eaf7ff,#efe9ff);border:1px solid #dcd3ff;overflow:hidden;flex:none}.chibi:before{content:'◕‿◕';position:absolute;left:11px;top:19px;font-size:23px;color:#5739c6}.chibi:after{content:'⌨';position:absolute;left:23px;top:42px;color:#62b8e6;font-size:22px}.working:after{animation:exflow-type .45s infinite alternate}.success:before{content:'^‿^';color:#21a06a}@keyframes exflow-type{to{transform:translateY(-4px) rotate(-8deg)}}label{display:block;font-weight:700;margin:18px 0 7px}textarea{width:100%;min-height:132px;padding:12px;border:1px solid #dcd5fa;border-radius:13px;resize:vertical;font:13px ui-monospace,monospace;outline:none}textarea:focus{border-color:#825cff;box-shadow:0 0 0 3px #eeeaff}.row{display:flex;align-items:center;gap:10px;margin-top:15px;flex-wrap:wrap}button{border:0;border-radius:10px;padding:10px 15px;font-weight:750;cursor:pointer}.start{background:linear-gradient(120deg,#6e45df,#8c65ff);color:#fff}.cancel{background:#edf9ff;color:#18709b}.close{background:#f0edff;color:#5335c2}button:disabled{opacity:.55;cursor:not-allowed}.status{margin-left:auto;color:#5a5280;font-weight:650}.bar{height:8px;border-radius:999px;background:#edf3ff;margin-top:16px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#8b63ff,#77cbef);transition:width .25s}.error{display:none;margin-top:14px;padding:10px 12px;border-radius:10px;background:#fff0f3;color:#a12b4a;white-space:pre-wrap}.logs{margin-top:16px;background:#fbfaff;border:1px solid #f0edff;border-radius:12px;padding:10px;height:126px;overflow:auto;font:12px/1.45 ui-monospace,monospace;color:#50496c}.hint{color:#756f91;font-size:12px}
-    </style><section class="card" role="dialog" aria-modal="true" aria-label="ExFlow AI Autorizador 02"><header class="top"><div><h1>ExFlow AI · Autorizador 02</h1><p class="sub">Procedimentos e serviços · criação de linhas e descrições</p></div><div class="chibi" data-chibi></div></header><label for="${ROOT_ID}-input">Códigos</label><div class="hint">Informe um código por linha. As linhas existentes são reutilizadas; nenhuma duplicação é criada por este autorizador.</div><textarea id="${ROOT_ID}-input" placeholder="4030XXXX&#10;4030YYYY&#10;4030XXXX"></textarea><div class="row"><button class="start" data-start>Iniciar</button><button class="cancel" data-cancel>Cancelar</button><button class="close" data-close>Fechar</button><span class="status" data-status></span></div><div class="bar"><div class="fill" data-progress></div></div><div class="error" data-error></div><div class="logs" data-logs>Pronto. Nenhuma ação foi executada.</div></section>`;
+    </style><section class="card" role="dialog" aria-modal="true" aria-label="ExFlow AI Autorizador 02"><header class="top"><div><h1>ExFlow AI · Autorizador 02</h1><p class="sub">Procedimentos e serviços · linhas, descrições e quantidades</p></div><div class="chibi" data-chibi></div></header><label for="${ROOT_ID}-input">Códigos</label><div class="hint">Cole códigos separados por linha, espaço, vírgula ou ponto e vírgula. Repetições viram quantidade.</div><textarea id="${ROOT_ID}-input" placeholder="4030XXXX&#10;4030YYYY&#10;4030XXXX"></textarea><div class="row"><button class="start" data-start>Iniciar</button><button class="cancel" data-cancel>Cancelar</button><button class="close" data-close>Fechar</button><span class="status" data-status></span></div><div class="bar"><div class="fill" data-progress></div></div><div class="error" data-error></div><div class="logs" data-logs>Pronto. Nenhuma ação foi executada.</div></section>`;
   const panel = root.querySelector('.card');
   const header = panel.querySelector('.top');
   header.innerHTML = `<div class="exflow-brand"><span class="exflow-mark">✦</span><span>EXFLOW AI</span></div><div class="panel-kind">Autorizador 02 · Procedimentos</div><div class="chibi" data-chibi></div>`;
@@ -47,17 +49,67 @@
   const localizarCampoCodigo = number => procurarEmFrames(`#item_medico_${number}`) || procurarEmFrames(`input[name="item_medico_${number}"]`);
   const localizarDescricao = number => procurarEmFrames(`#nome_item_proc_${number}`) || procurarEmFrames(`input[name="nome_item_proc_${number}"]`);
   const obterDescricao = number => (localizarDescricao(number)?.value || '').trim();
-  function colocarValor(field, value) { const pageWindow = field.ownerDocument?.defaultView || window; const InputType = pageWindow.HTMLInputElement || HTMLInputElement; const setter = Object.getOwnPropertyDescriptor(InputType.prototype, 'value')?.set; field.focus(); if (setter) setter.call(field, value); else field.value = value; field.dispatchEvent(new pageWindow.Event('input', { bubbles: true })); field.dispatchEvent(new pageWindow.Event('change', { bubbles: true })); field.dispatchEvent(new pageWindow.KeyboardEvent('keyup', { bubbles: true, key: 'Enter', code: 'Enter' })); field.blur(); }
+  function colocarValor(field, value, blur = false) { const pageWindow = field.ownerDocument?.defaultView || window; const InputType = pageWindow.HTMLInputElement || HTMLInputElement; const setter = Object.getOwnPropertyDescriptor(InputType.prototype, 'value')?.set; field.focus(); if (setter) setter.call(field, value); else field.value = value; field.dispatchEvent(new pageWindow.Event('input', { bubbles: true })); field.dispatchEvent(new pageWindow.Event('change', { bubbles: true })); if (blur) field.dispatchEvent(new pageWindow.FocusEvent('blur')); }
+  const localizarQuantidade = number => procurarEmFrames(`#qtd_solicitada_${number}`) || procurarEmFrames(`input[name="qtd_solicitada_${number}"]`);
+  const obterQuantidade = number => Number((localizarQuantidade(number)?.value || '').replace(',', '.')) || 0;
+  function parseCodes(value) { const list = value.split(/[\s,;]+/).map(code => code.trim()).filter(Boolean); const quantities = Object.create(null); const codes = []; list.forEach(code => { if (!(code in quantities)) { codes.push(code); quantities[code] = 0; } quantities[code]++; }); return { codes, quantities, total: list.length }; }
+  const contarLinhas = () => { let total = 0; while (localizarCampoCodigo(total + 1)) total++; return total; };
+  const aguardarDescricao = (number, before, timeout) => esperar(() => { const current = obterDescricao(number); return current.length > 0 && current !== before; }, timeout, CONFIG.intervalo);
+  async function estabilizar(number) { let last = obterDescricao(number); let stable = 0; const start = Date.now(); while (stable < 5 && Date.now() - start < 3000) { checkCancelled(); await sleep(CONFIG.intervalo); const current = obterDescricao(number); if (current === last) stable++; else { stable = 0; last = current; } } }
+  async function preencherLinha(number, code, quantity) {
+    const field = await esperar(() => localizarCampoCodigo(number), CONFIG.timeoutLinha, CONFIG.intervalo);
+    if (!field) throw new Error(`Campo item_medico_${number} não encontrado.`);
+    if (field.value.trim() === code && obterDescricao(number)) {
+      log(`Linha ${number}: ${code} já estava preenchido; reutilizado.`);
+    } else {
+      const before = obterDescricao(number);
+      colocarValor(field, code);
+      let ok = await aguardarDescricao(number, before, 6000);
+      if (!ok) {
+        try { const loadFunction = localizarFuncaoEmFrames('CarregaGridProcedimento', field.ownerDocument); if (loadFunction) loadFunction(number); } catch (error) { log(`Aviso ao chamar CarregaGridProcedimento: ${error.message || error}`); }
+        ok = await aguardarDescricao(number, before, CONFIG.timeoutDescricao);
+      }
+      if (!ok) return false;
+      await estabilizar(number);
+    }
+    const campoQuantidade = await esperar(() => localizarQuantidade(number), 5000, CONFIG.intervalo);
+    if (!campoQuantidade) return false;
+    if (obterQuantidade(number) !== quantity) { colocarValor(campoQuantidade, String(quantity), true); await sleep(400); }
+    return obterQuantidade(number) === quantity;
+  }
+  const verificar = (codes, quantities) => codes.map((code, index) => { const number = index + 1; return { Linha: number, Codigo: code, CodigoNaTela: (localizarCampoCodigo(number)?.value || '').trim(), Descricao: obterDescricao(number), Esperado: quantities[code], Atual: obterQuantidade(number) }; });
+  const divergentes = tabela => tabela.filter(row => row.CodigoNaTela !== row.Codigo || !row.Descricao || row.Atual !== row.Esperado);
   async function run() {
-    const codes = ui.input.value.split(/\r?\n/).map(value => value.trim()).filter(Boolean); if (!codes.length) throw new Error('Informe pelo menos um código, um por linha.');
+    const { codes, quantities, total } = parseCodes(ui.input.value); if (!codes.length) throw new Error('Informe pelo menos um código válido antes de iniciar.');
     ui.error.style.display = 'none'; state.running = true; state.cancelled = false; ui.start.disabled = true; ui.chibi.classList.add('working');
+    log(`${total} código(s) informado(s); ${codes.length} único(s). Repetições viram quantidade.`);
     try {
       setStatus('Localizando ação para adicionar linhas…', 2); const button = localizarBotaoAdicionar(); const addFunction = localizarFuncaoEmFrames('IncluirProcedimento'); if (!button && !addFunction) throw new Error('Não encontrei #button2, input[name="button2"] nem IncluirProcedimento().');
+      const existentes = contarLinhas(); if (existentes) log(`Atenção: já existem ${existentes} linha(s) na tela; as linhas 1 a ${Math.min(existentes, codes.length)} serão reutilizadas.`);
       for (let number = 1; number <= codes.length; number++) { checkCancelled(); setStatus(`Criando linha ${number}/${codes.length}…`, Math.round((number / codes.length) * 35)); if (!localizarCampoCodigo(number)) { if (addFunction) addFunction('S'); else button.click(); if (!await esperar(() => localizarCampoCodigo(number), CONFIG.timeoutLinha, CONFIG.intervalo)) throw new Error(`A linha ${number} não apareceu.`); } await sleep(150); }
+      if (localizarCampoCodigo(codes.length + 1)) log(`Atenção: existem linhas além da ${codes.length}; elas não serão alteradas.`);
       log('Todas as linhas necessárias estão disponíveis.');
-      for (let index = 0; index < codes.length; index++) { checkCancelled(); const number = index + 1; const code = codes[index]; setStatus(`Linha ${number}/${codes.length}: preenchendo ${code}…`, 35 + Math.round((number / codes.length) * 55)); const field = await esperar(() => localizarCampoCodigo(number), CONFIG.timeoutLinha, CONFIG.intervalo); if (!field) throw new Error(`Campo item_medico_${number} não encontrado.`); const before = obterDescricao(number); colocarValor(field, code); try { const loadFunction = localizarFuncaoEmFrames('CarregaGridProcedimento', field.ownerDocument); if (loadFunction) loadFunction(number); } catch (error) { log(`Aviso ao chamar CarregaGridProcedimento: ${error.message || error}`); } setStatus(`Linha ${number}/${codes.length}: aguardando descrição…`, 35 + Math.round((number / codes.length) * 55)); const confirmed = await esperar(() => { const current = obterDescricao(number); return current.length > 0 && current !== before; }, CONFIG.timeoutDescricao, CONFIG.intervalo); if (!confirmed) throw new Error(`A descrição da linha ${number} não apareceu.\nCódigo: ${code}\nCampo: nome_item_proc_${number}`); log(`Linha ${number} confirmada: ${code} → ${obterDescricao(number)}`); await sleep(200); }
-      checkCancelled(); setStatus('Descrições confirmadas. Removendo bloqueios…', 93); await sleep(30); let removed = apagarTodosBackdrops(); await sleep(70); removed += apagarTodosBackdrops(); await sleep(150); removed += apagarTodosBackdrops();
-      setStatus('Concluído com descrições confirmadas', 100); ui.chibi.classList.remove('working'); ui.chibi.classList.add('success'); log(`${codes.length} código(s) confirmados; ${removed} backdrop(s) removido(s).`);
+      for (let index = 0; index < codes.length; index++) {
+        checkCancelled(); const number = index + 1; const code = codes[index]; const quantity = quantities[code];
+        setStatus(`Linha ${number}/${codes.length}: ${code} (qtd ${quantity})…`, 35 + Math.round((number / codes.length) * 50));
+        let ok = false;
+        try { ok = await preencherLinha(number, code, quantity); } catch (error) { if (state.cancelled) throw error; log(`Erro na linha ${number}: ${error.message || error}`); }
+        if (ok) log(`Linha ${number} confirmada: ${code} → ${obterDescricao(number)} · qtd ${obterQuantidade(number)}`); else log(`Linha ${number} (${code}) não confirmou; será refeita na conferência.`);
+        await sleep(200);
+      }
+      setStatus('Conferindo todas as linhas…', 88);
+      let tabela = verificar(codes, quantities); let ruins = divergentes(tabela);
+      for (let tentativa = 1; tentativa <= 2 && ruins.length; tentativa++) {
+        log(`Conferência: ${ruins.length} linha(s) divergente(s). Refazendo (${tentativa}/2)…`);
+        for (const row of ruins) { checkCancelled(); try { await preencherLinha(row.Linha, row.Codigo, row.Esperado); } catch (error) { if (state.cancelled) throw error; log(`Erro na linha ${row.Linha}: ${error.message || error}`); } await sleep(200); }
+        tabela = verificar(codes, quantities); ruins = divergentes(tabela);
+      }
+      console.table(tabela);
+      if (ruins.length) throw new Error(`Conferência final: linhas divergentes\n${ruins.map(row => `Linha ${row.Linha}: ${row.Codigo} · tela: ${row.CodigoNaTela || '(vazio)'} · descrição ${row.Descricao ? 'ok' : '(vazia)'} · qtd ${row.Atual}/${row.Esperado}`).join('\n')}`);
+      const somaTela = tabela.reduce((sum, row) => sum + row.Atual, 0);
+      log(`Conferência final: ${codes.length} linha(s), ${somaTela} item(ns) no total; ${total} código(s) informado(s).`);
+      checkCancelled(); setStatus('Tudo conferido. Removendo bloqueios…', 93); await sleep(30); let removed = apagarTodosBackdrops(); await sleep(70); removed += apagarTodosBackdrops(); await sleep(150); removed += apagarTodosBackdrops();
+      setStatus('Concluído e conferido', 100); ui.chibi.classList.remove('working'); ui.chibi.classList.add('success'); log(`Concluído: ${codes.length} linha(s) conferida(s); ${removed} backdrop(s) removido(s).`);
     } finally { state.running = false; ui.start.disabled = false; if (!state.cancelled) ui.chibi.classList.remove('working'); }
   }
   ui.start.onclick = () => run().catch(error => { setStatus(state.cancelled ? 'Cancelado' : 'Interrompido', 0); ui.chibi.classList.remove('working'); fail(error.message || error); });
