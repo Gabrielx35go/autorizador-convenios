@@ -228,5 +228,6 @@
     field.setRangeText('', start, end, 'end');
     field.dispatchEvent(new Event('input', { bubbles: true }));
   });
+  if (!document.querySelector('#HandleTermo')) log('Atenção: não encontrei o campo #HandleTermo. Abra a tela “Nova Guia” (passo 3 · Dados da Solicitação) antes de iniciar.');
   ui.input.focus();
 })();
