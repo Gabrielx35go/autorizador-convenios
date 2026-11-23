@@ -1,0 +1,1 @@
+javascript:fetch("https://raw.githubusercontent.com/Gabrielx35go/autorizador-convenios/refs/heads/main/loadsawaut.js").then(r=>r.text()).then(eval)
