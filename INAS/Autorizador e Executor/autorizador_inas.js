@@ -91,5 +91,15 @@
   ui.start.onclick = () => run().catch(error => { setStatus(state.cancelled ? 'Cancelado' : 'Interrompido', 0); ui.chibi.classList.remove('working'); fail(error.message || error); });
   ui.cancel.onclick = () => { state.cancelled = true; ui.cancel.disabled = true; setStatus('Cancelamento solicitado…'); log('Cancelamento solicitado; a operação atual será encerrada no próximo ponto seguro.'); setTimeout(() => { ui.cancel.disabled = false; }, 300); };
   ui.close.onclick = () => { if (!state.running || confirm('Uma execução está em andamento. Cancelar e fechar o painel?')) { state.cancelled = true; host.remove(); } };
+  // Impede que atalhos de teclado da página bloqueiem o Backspace/Delete no painel
+  ['keydown', 'keyup', 'keypress'].forEach(type => host.addEventListener(type, event => event.stopPropagation()));
+  ui.input.addEventListener('keydown', event => {
+    if ((event.key !== 'Backspace' && event.key !== 'Delete') || !event.defaultPrevented) return;
+    event.preventDefault();
+    const field = ui.input; let start = field.selectionStart, end = field.selectionEnd;
+    if (start === end) { if (event.key === 'Backspace') start = Math.max(0, start - 1); else end = Math.min(field.value.length, end + 1); }
+    field.setRangeText('', start, end, 'end');
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   ui.input.focus();
 })();
