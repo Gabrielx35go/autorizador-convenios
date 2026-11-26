@@ -4,6 +4,11 @@
   const ROOT_ID = '__exflow_executor_04__';
   document.getElementById(ROOT_ID)?.remove();
   const state = { cancelled: false, running: false };
+  /* O SAW atende dois convênios na mesma tela. O código da operadora vai nos campos 13 e 29. */
+  const CONVENIOS = { proasa: { nome: 'PROASA', codigo: '9883' }, cnu: { nome: 'CNU', codigo: '002305275' } };
+  let convenio = 'proasa';
+  try { const salvo = localStorage.getItem('__exflow_saw_convenio'); if (CONVENIOS[salvo]) convenio = salvo; } catch (_) {}
+  const CODIGO = () => CONVENIOS[convenio].codigo;
   try { window.__exflowExecutor04?.cancel?.(); } catch (_) {}
   window.__exflowExecutor04 = { cancel: () => { state.cancelled = true; } };
   const pausa = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -21,7 +26,7 @@
   root.innerHTML = `
     <style>
       :host{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:rgba(33,24,67,.28);font:14px/1.4 Inter,ui-sans-serif,system-ui,sans-serif;color:#241b44}:host *{box-sizing:border-box}:host .card{width:min(760px,94vw);max-height:92vh;overflow:auto;border:1px solid #e9e5ff;border-radius:24px;background:#fff;box-shadow:0 28px 90px rgba(61,42,139,.25);padding:24px}.top{display:flex;gap:18px;align-items:center;border-bottom:1px solid #f0edff;padding-bottom:18px}h1{font-size:20px;margin:0}.sub{color:#756f91;margin:3px 0 0}.chibi{margin-left:auto;position:relative;width:68px;height:68px;border-radius:22px;background:linear-gradient(145deg,#eaf7ff,#efe9ff);border:1px solid #dcd3ff;overflow:hidden;flex:none}.chibi:before{content:'◕‿◕';position:absolute;left:11px;top:19px;font-size:23px;color:#5739c6}.chibi:after{content:'⌨';position:absolute;left:23px;top:42px;color:#62b8e6;font-size:22px}.working:after{animation:exflow-type .45s infinite alternate}.success:before{content:'^‿^';color:#21a06a}@keyframes exflow-type{to{transform:translateY(-4px) rotate(-8deg)}}label{display:block;font-weight:700;margin:18px 0 7px}textarea{width:100%;min-height:132px;padding:12px;border:1px solid #dcd5fa;border-radius:13px;resize:vertical;font:13px ui-monospace,monospace;outline:none}textarea:focus{border-color:#825cff;box-shadow:0 0 0 3px #eeeaff}.summary{margin-top:12px;padding:10px 12px;border:1px solid #e1e7f3;border-radius:10px;background:#fff;color:#66748c;font-size:12px;line-height:1.5}.row{display:flex;align-items:center;gap:10px;margin-top:15px;flex-wrap:wrap}button{border:0;border-radius:10px;padding:10px 15px;font-weight:750;cursor:pointer}.start{background:linear-gradient(120deg,#6e45df,#8c65ff);color:#fff}.cancel{background:#edf9ff;color:#18709b}.close{background:#f0edff;color:#5335c2}button:disabled{opacity:.55;cursor:not-allowed}.status{margin-left:auto;color:#5a5280;font-weight:650}.bar{height:8px;border-radius:999px;background:#edf3ff;margin-top:16px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#8b63ff,#77cbef);transition:width .25s}.error{display:none;margin-top:14px;padding:10px 12px;border-radius:10px;background:#fff0f3;color:#a12b4a;white-space:pre-wrap}.logs{margin-top:16px;background:#fbfaff;border:1px solid #f0edff;border-radius:12px;padding:10px;height:126px;overflow:auto;font:12px/1.45 ui-monospace,monospace;color:#50496c}.hint{color:#756f91;font-size:12px}
-    </style><section class="card" role="dialog" aria-modal="true" aria-label="ExFlow AI Autorizador 04"><header class="top"><div><h1>ExFlow AI · Autorizador 04</h1><p class="sub">SAW · SP/SADT · guia completa</p></div><div class="chibi" data-chibi></div></header><label for="${ROOT_ID}-input">Códigos</label><div class="hint">Cole códigos separados por linha, espaço, vírgula ou ponto e vírgula. Repetições viram quantidade.</div><textarea id="${ROOT_ID}-input" placeholder="4030XXXX&#10;4030YYYY&#10;4030XXXX"></textarea><div class="summary" data-summary>Nenhum código informado.</div><div class="row"><button class="start" data-start>Iniciar</button><button class="cancel" data-cancel>Cancelar</button><button class="close" data-close>Fechar</button><span class="status" data-status></span></div><div class="bar"><div class="fill" data-progress></div></div><div class="error" data-error></div><div class="logs" data-logs>Pronto. Nenhuma ação foi executada.</div></section>`;
+    </style><section class="card" role="dialog" aria-modal="true" aria-label="ExFlow AI Autorizador 04"><header class="top"><div><h1>ExFlow AI · Autorizador 04</h1><p class="sub">SAW · SP/SADT · guia completa</p></div><div class="chibi" data-chibi></div></header><div class="conv" data-conv><span class="conv-label">Convênio</span><button type="button" data-conv-btn="proasa">PROASA</button><button type="button" data-conv-btn="cnu">CNU · Central Nacional Unimed</button></div><label for="${ROOT_ID}-input">Códigos</label><div class="hint">Cole códigos separados por linha, espaço, vírgula ou ponto e vírgula. Repetições viram quantidade.</div><textarea id="${ROOT_ID}-input" placeholder="4030XXXX&#10;4030YYYY&#10;4030XXXX"></textarea><div class="summary" data-summary>Nenhum código informado.</div><div class="row"><button class="start" data-start>Iniciar</button><button class="cancel" data-cancel>Cancelar</button><button class="close" data-close>Fechar</button><span class="status" data-status></span></div><div class="bar"><div class="fill" data-progress></div></div><div class="error" data-error></div><div class="logs" data-logs>Pronto. Nenhuma ação foi executada.</div></section>`;
   const panel = root.querySelector('.card');
   const header = panel.querySelector('.top');
   header.innerHTML = `<div class="exflow-brand"><span class="exflow-mark">✦</span><span>EXFLOW AI</span></div><div class="panel-kind">Autorizador 04 · SAW</div><div class="chibi" data-chibi></div>`;
@@ -46,13 +51,19 @@
   root.appendChild(floatingTheme);
   document.body.appendChild(host);
   const ui = { input: root.querySelector('textarea'), summary: root.querySelector('[data-summary]'), start: root.querySelector('[data-start]'), cancel: root.querySelector('[data-cancel]'), close: root.querySelector('[data-close]'), status: root.querySelector('[data-status]'), progress: root.querySelector('[data-progress]'), logs: root.querySelector('[data-logs]'), error: root.querySelector('[data-error]'), chibi: root.querySelector('[data-chibi]') };
+  const estiloConv = document.createElement('style');
+  estiloConv.textContent = `.conv{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 14px}.conv-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6b7791}.conv button{border:1px solid #d6def0;background:#fff;color:#33415f;border-radius:10px;padding:8px 14px;font:600 13px Inter,system-ui,sans-serif;cursor:pointer}.conv button[aria-pressed=true]{background:#3e5be9;border-color:#3e5be9;color:#fff;box-shadow:0 4px 12px rgba(62,91,233,.25)}.conv button:disabled{opacity:.55;cursor:not-allowed}`;
+  root.appendChild(estiloConv);
+  const botoesConv = [...root.querySelectorAll('[data-conv-btn]')];
+  const marcarConv = () => { botoesConv.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.convBtn === convenio))); const sub = root.querySelector('.sub'); if (sub) sub.textContent = `SAW · SP/SADT · ${CONVENIOS[convenio].nome} · guia completa`; };
+  botoesConv.forEach(b => { b.onclick = () => { if (state.running) return; convenio = b.dataset.convBtn; try { localStorage.setItem('__exflow_saw_convenio', convenio); } catch (_) {} marcarConv(); }; });
+  marcarConv();
   const log = message => { String(message).split('\n').forEach(part => { if (!part.trim()) return; console.log('[ExFlow 04]', part); const line = document.createElement('div'); line.textContent = `${new Date().toLocaleTimeString()}  ${part}`; ui.logs.appendChild(line); }); ui.logs.scrollTop = ui.logs.scrollHeight; };
   const setStatus = (message, percent) => { ui.status.textContent = message; if (Number.isFinite(percent)) ui.progress.style.width = `${Math.max(0, Math.min(100, percent))}%`; };
   const fail = message => { ui.error.textContent = message; ui.error.style.display = 'block'; log(`ERRO: ${message}`); };
 
   /* ---------- Lógica SAW (Trixti) ---------- */
   const PREF = 'manterTISSSPSADT40DTO.tissSolicitacaoDeSPSADTDTO.';
-  const CODIGO_OPERADORA = '9883';
   const MAX_TENTATIVAS = 3;
   const alertas = [];
   const janelasComAlerta = [];
@@ -74,6 +85,9 @@
     el.dispatchEvent(new win.Event('input', { bubbles: true }));
     el.dispatchEvent(new win.Event('change', { bubbles: true }));
   }
+
+  const semZeros = t => String(t ?? '').trim().replace(/^0+/, '');
+  const mesmoCodigo = (a, b) => semZeros(a) === semZeros(b);
 
   function ocupado() {
     const aguarde = procurarEmFrames('#divAguarde'); const win = janelaDe(aguarde);
@@ -203,11 +217,25 @@
   async function passoContratadoSolicitante() {
     const f13 = hdr('contratadoSolicitante.codigo'), f14 = hdr('contratadoSolicitante.nome');
     if (!f13 || !f14) throw new Error('Campos 13/14 (contratado solicitante) não encontrados.');
+    const caixa = () => f13.ownerDocument.getElementById('ajaxAuto_' + f13.id);
     const ok = await tentar('13-Código na Operadora', async () => {
-      if (valor(f13) !== CODIGO_OPERADORA || !valor(f14)) { setarValor(f13, CODIGO_OPERADORA); await esperar(() => valor(f14) && !ocupado(), 10000); }
-      return valor(f13) === CODIGO_OPERADORA && !!valor(f14);
+      if (!mesmoCodigo(valor(f13), CODIGO()) || !valor(f14)) {
+        const win = janelaDe(f13);
+        f13.focus();
+        setarValor(f13, CODIGO());
+        ['keydown', 'keyup'].forEach(tipo => f13.dispatchEvent(new win.KeyboardEvent(tipo, { bubbles: true, key: '5', keyCode: 53 })));
+        // se a lista de sugestões aparecer, escolhe o prestador correspondente ao código
+        const lista = await esperar(() => { const c = caixa(); return c && win.getComputedStyle(c).display !== 'none' && c.querySelector('li') ? c : null; }, 3500);
+        if (lista) {
+          const itens = [...lista.querySelectorAll('li')];
+          const alvo = itens.find(li => li.textContent.includes(CODIGO()) || li.textContent.includes(semZeros(CODIGO()))) || itens[0];
+          ['mouseover', 'mousedown', 'mouseup', 'click'].forEach(tipo => alvo.dispatchEvent(new win.MouseEvent(tipo, { bubbles: true, cancelable: true, view: win })));
+        }
+        await esperar(() => valor(f14) && !ocupado(), 10000);
+      }
+      return mesmoCodigo(valor(f13), CODIGO()) && !!valor(f14);
     });
-    if (!ok) throw new Error(`13-Código na Operadora: o nome do contratado (campo 14) não apareceu depois de ${MAX_TENTATIVAS} tentativas.${alertasRecentes()}`);
+    if (!ok) throw new Error(`13-Código na Operadora: o nome do contratado (campo 14) não apareceu para o código ${CODIGO()} depois de ${MAX_TENTATIVAS} tentativas.${alertasRecentes()}`);
   }
 
   const CAMPOS_PROFISSIONAL = ['nome', 'conselhoProfissional', 'crm', 'ufDoCrm', 'cbos'];
@@ -217,14 +245,20 @@
     if (!ok) throw new Error('O profissional solicitante (campos 15 a 19) não está preenchido. Preencha e clique em Iniciar novamente.');
   }
 
+  const opcaoDoCodigo = (sel, codigo) => [...sel.options].find(o => o.value && (mesmoCodigo(o.value, codigo) || mesmoCodigo(o.text.split(/\s*-+\s*/)[0], codigo)));
   async function passoExecutante() {
     const sel = hdr('contratadoExecutante.codigo'), nome = hdr('contratadoExecutante.nome');
     if (!sel || !nome) throw new Error('Campos 29/30 (contratado executante) não encontrados.');
     const ok = await tentar('29-Cód. na Operadora (executante)', async () => {
-      if (sel.value !== CODIGO_OPERADORA || !valor(nome)) { setarValor(sel, CODIGO_OPERADORA); await esperar(() => valor(nome) && !ocupado(), 8000); }
-      return sel.value === CODIGO_OPERADORA && !!valor(nome);
+      const opt = opcaoDoCodigo(sel, CODIGO());
+      if (!opt) return false;
+      if (sel.value !== opt.value || !valor(nome)) { setarValor(sel, opt.value); await esperar(() => valor(nome) && !ocupado(), 8000); }
+      return sel.value === opt.value && !!valor(nome);
     });
-    if (!ok) throw new Error(`29-Cód. na Operadora: não consegui selecionar 9883 - LABORATORIO SABIN depois de ${MAX_TENTATIVAS} tentativas.${alertasRecentes()}`);
+    if (!ok) {
+      const opcoes = [...sel.options].map(o => o.text.trim()).filter(Boolean).join(' | ');
+      throw new Error(`29-Cód. na Operadora: não consegui selecionar o código ${CODIGO()} (${CONVENIOS[convenio].nome}) depois de ${MAX_TENTATIVAS} tentativas. Opções disponíveis no campo: ${opcoes || '(nenhuma)'}.${alertasRecentes()}`);
+    }
   }
 
   /* ----- conferência ----- */
@@ -232,11 +266,11 @@
     const p = [];
     const igual = (rotulo, el, esperado) => { if (valor(el) !== esperado) p.push(`${rotulo}: esperado ${esperado}, encontrado ${el ? (valor(el) || '(vazio)') : 'campo ausente'}`); };
     const preenchido = (rotulo, el) => { if (!valor(el)) p.push(`${rotulo}: está vazio`); };
-    igual('13-Código na Operadora', hdr('contratadoSolicitante.codigo'), CODIGO_OPERADORA);
+    if (!mesmoCodigo(valor(hdr('contratadoSolicitante.codigo')), CODIGO())) p.push(`13-Código na Operadora: esperado ${CODIGO()}, encontrado ${valor(hdr('contratadoSolicitante.codigo')) || '(vazio)'}`);
     preenchido('14-Nome do Contratado', hdr('contratadoSolicitante.nome'));
     [['15-Nome do Profissional', 'nome'], ['16-Conselho Profissional', 'conselhoProfissional'], ['17-Número no Conselho', 'crm'], ['18-UF', 'ufDoCrm'], ['19-Código CBO', 'cbos']].forEach(([rotulo, k]) => preenchido(rotulo, hdr('profissionalSolicitante.' + k)));
     igual('21-Caráter do Atendimento (Eletiva)', hdr('caraterDeSolicitacao'), '1');
-    igual('29-Cód. na Operadora', hdr('contratadoExecutante.codigo'), CODIGO_OPERADORA);
+    { const el29 = hdr('contratadoExecutante.codigo'); const opt = el29 && el29.selectedOptions && el29.selectedOptions[0]; if (!opt || !el29.value || !(mesmoCodigo(el29.value, CODIGO()) || mesmoCodigo(opt.text.split(/\s*-+\s*/)[0], CODIGO()))) p.push(`29-Cód. na Operadora: esperado ${CODIGO()}, encontrado ${opt ? (opt.text.trim() || '(vazio)') : 'campo ausente'}`); }
     preenchido('30-Nome do Contratado Executante', hdr('contratadoExecutante.nome'));
     const total = contarLinhas();
     if (total !== lista.length) p.push(`Linhas de procedimento: esperado ${lista.length}, encontrado ${total}`);
@@ -308,7 +342,7 @@
     const f13 = hdr('contratadoSolicitante.codigo');
     if (!f13) { fail('Não encontrei os campos da guia de SP/SADT nesta página. Abra a tela “SP/SADT” e tente de novo.'); return; }
 
-    state.running = true; state.cancelled = false; ui.start.disabled = true;
+    state.running = true; state.cancelled = false; ui.start.disabled = true; botoesConv.forEach(b => { b.disabled = true; }); log(`Convênio: ${CONVENIOS[convenio].nome} · código da operadora ${CODIGO()}`);
     ui.chibi.classList.remove('success'); ui.chibi.classList.add('working');
     ui.progress.style.width = '0%'; alertas.length = 0;
     instalarCapturaDeAlertas(janelaDe(f13));
@@ -325,7 +359,7 @@
       setStatus(cancelado ? 'Cancelado' : 'Interrompido — veja o aviso', 0);
       if (!cancelado) fail(erro.message || String(erro)); else log('Execução cancelada.');
     } finally {
-      restaurarAlertas(); state.running = false; ui.start.disabled = false; ui.chibi.classList.remove('working');
+      restaurarAlertas(); state.running = false; ui.start.disabled = false; botoesConv.forEach(b => { b.disabled = false; }); ui.chibi.classList.remove('working');
     }
   }
 
