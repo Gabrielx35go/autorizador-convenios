@@ -121,7 +121,7 @@
 
   /* ----- lista de códigos ----- */
   function obterLista() {
-    const todos = ui.input.value.match(/(?<!\d)\d{8}(?!\d)/g) || []; // só códigos TUSS de 8 dígitos; o resto do texto colado é ignorado
+    const todos = (ui.input.value.match(/(?<!\d)(?:\d\.\d{2}\.\d{2}\.\d{2}-\d|\d{8})(?!\d)/g) || []).map(c => c.replace(/\D/g, '')); // só códigos TUSS de 8 dígitos; o resto do texto colado é ignorado
     if (!todos.length) throw new Error('Nenhum código TUSS de 8 dígitos encontrado no texto.');
     const contagem = new Map();
     todos.forEach(c => contagem.set(c, (contagem.get(c) || 0) + 1));
