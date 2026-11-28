@@ -43,9 +43,8 @@
 
   /* ---------- Lógica Benner ---------- */
   function obterLista() {
-    const codigos = ui.input.value.split(/[\s,;|]+/).map(c => c.trim()).filter(Boolean);
-    const invalidos = codigos.filter(c => !/^\d+$/.test(c));
-    if (invalidos.length) throw new Error(`Existem códigos inválidos: ${invalidos.slice(0, 5).join(', ')}${invalidos.length > 5 ? '…' : ''}`);
+    const codigos = ui.input.value.match(/(?<!\d)\d{8}(?!\d)/g) || []; // só códigos TUSS de 8 dígitos; o resto do texto colado é ignorado
+    if (!codigos.length) throw new Error('Nenhum código TUSS de 8 dígitos encontrado no texto.');
     const contagem = new Map();
     codigos.forEach(codigo => contagem.set(codigo, (contagem.get(codigo) || 0) + 1));
     return [...contagem].map(([codigo, quantidade]) => ({ codigo, quantidade }));
